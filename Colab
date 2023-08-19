@@ -1,0 +1,7 @@
+import pandas as pd
+import sqlite3
+
+#Nessa parte importei os módulos pandas para a manipulação das tabelas e o sqlite3 para trabalhar com o banco de dados#
+
+perfil_eleitorado_data = pd.read_csv('perfil_eleitorado_editar_2020.csv', encoding='ISO-8859-1')
+resultados_data = pd.read_csv('SP_turno_1_meu.csv', sep=';', encoding='ISO-8859-1')
