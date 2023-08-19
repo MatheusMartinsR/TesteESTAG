@@ -1,0 +1,122 @@
+import pandas as pd
+import sqlite3
+
+#Nessa parte importei os módulos pandas para a manipulação das tabelas e o sqlite3 para trabalhar com o banco de dados#
+
+perfil_eleitorado_data = pd.read_csv('perfil_eleitorado_editar_2020.csv', encoding='ISO-8859-1')
+resultados_data = pd.read_csv('SP_turno_1_meu.csv', sep=';', encoding='ISO-8859-1')
+
+#Nessa parte os dataframes estão sendo criados a partir de arquivos CSV#
+
+perfil_eleitorado_data.drop_duplicates(inplace=True)
+resultados_data.drop_duplicates(inplace=True)
+perfil_eleitorado_data.dropna(inplace=True)
+resultados_data.dropna(inplace=True)
+
+#Nessa parte estou removendo linhas duplicadas e valores nulos#
+
+conn = sqlite3.connect('eleicoes_sp.db')
+
+#Aqui eu estabeleci a conexão com o banco de dados#
+
+perfil_eleitorado_data.to_sql('perfil_eleitorado', conn, if_exists='replace', index=False)
+resultados_data.to_sql('resultados', conn, if_exists='replace', index=False)
+
+#Aqui eu estou gravando os dataframes 'perfil_eleitorado_data' e 'resultado_data' nas tabelas 'perfil_eleitorado' e 'resultados' no banco de dados#
+
+line_number = 159381
+lines_to_show = 5
+
+with open('SP_turno_1_meu.csv', 'r', encoding='ISO-8859-1') as file:
+    lines = file.readlines()
+    for i in range(max(0, line_number - lines_to_show), min(len(lines), line_number + lines_to_show + 1)):
+        print(f"Line {i + 1}: {lines[i]}")
+
+#Esse bloco lê e me mostra algumas linhas antes e depois da linha 159381 para identificar um possível erro# 
+
+line_number = 159380
+with open('SP_turno_1_meu.csv', 'r', encoding='ISO-8859-1') as file:
+    lines = file.readlines()
+    content = ''.join(lines[:line_number])
+
+#Esse bloco le o arquivo 'SP_turno_1_meu.csv' até a linha 159380 e armazena o conteúdo em 'content'
+
+temp_file_path = 'temp_SP_turno_1_meu.csv'
+with open(temp_file_path, 'w', encoding='ISO-8859-1') as temp_file:
+    temp_file.write(content)
+
+#Esse bloco cria um arquivo temporário para armazerar o conteúdo lido anteriormente#
+
+resultados_data = pd.read_csv(temp_file_path, encoding='ISO-8859-1')
+print(resultados_data.head())
+
+#Esse bloco exibe as informações 'resultado_data'#
+
+import os
+os.remove(temp_file_path)
+
+#Nesse bloco eu removo o arquivo temporário#
+
+resultados_data = pd.read_csv('SP_turno_1_meu.csv', sep=';', encoding='ISO-8859-1')
+print(resultados_data.head())
+
+#Recarreguei o dataframe e exibi as primeiras linhas de informação#
+
+conn = sqlite3.connect('eleicoes_sp.db')
+#Aqui eu estabeleço a conexão com o banco de dados#
+
+tables = conn.execute("SELECT name FROM sqlite_master WHERE type='table';").fetchall()
+print("Tabelas no banco de dados:")
+for table in tables:
+    print(table[0])
+#Aqui eu realizo uma consulta para obter o nome das tabelas que estão presentes nele#
+
+col_municipio_perfil = "NM_MUNICIPIO"
+col_zona_perfil = "NR_ZONA"
+col_secao_perfil = "NR_SECAO"
+
+col_municipio_resultados = "NM_MUNICIPIO"
+col_zona_resultados = "NR_ZONA"
+col_secao_resultados = "NR_SECAO"
+
+query_unused_perfil = f"""
+    SELECT *
+    FROM perfil_eleitorado
+    WHERE ({col_municipio_perfil} || {col_zona_perfil} || {col_secao_perfil}) NOT IN (
+        SELECT {col_municipio_resultados} || {col_zona_resultados} || {col_secao_resultados}
+        FROM resultados
+    )
+"""
+#Nesse bloco eu crio uma consulta para buscar as linhas do perfil eleitoral que não estão presentes nos resultados das eleições#
+
+print("Perfil Eleitorado Data Columns:")
+print(perfil_eleitorado_data.columns)
+
+print("\nResultados Data Columns:")
+print(resultados_data.columns)
+#Nesse bloco eu exibo as informações necessárias#
+
+conn.close()
+
+#Aqui eu fecho a conexão com o banco de dados#
+
+resultados_data = pd.read_csv('SP_turno_1_meu.csv', sep=';', encoding='ISO-8859-1')
+
+#E nesse último bloco eu recarrego o dataframe a partir do arquivo original usando apenas um separador diferente#
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
